@@ -1,7 +1,7 @@
 <?php
 include 'config.php';
-$result= $conn->query("SELECT * FROM attendance");
-$customers = $result->fetch_all(MYSQLI_ASSOC);
+$qs= "SELECT * FROM attendance";
+$attendances = $conn->query($qs);
 
 // session start if not started
 if (session_status() == PHP_SESSION_NONE) {
@@ -10,7 +10,6 @@ if (session_status() == PHP_SESSION_NONE) {
 
 if(!isset($_SESSION['admin_name'])){
 }
-
 ?>
 
 
@@ -125,26 +124,29 @@ if(!isset($_SESSION['admin_name'])){
                                     <tr style="color: #f17a71;">
                                         <th>#</th> 
                                         <th>Names</th>
-                                        <th>Time</th>
                                         <th>Amount</th>
-                                    
+                                        <th>Time</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                <?php
-                                foreach($customers as $customer) :?>
-
+                                    <?php 
+                                        if ($attendances->num_rows > 0) {
                             
-                                <tr>
-                    <td><?php echo $customer['id']?></td>
-					<td><?php echo $customer['first_name']?></td>
-					<td><?php echo $customer['last_name']?></td>
-                    	<td><?php echo $customer['position']?></td>
-					<td><?php echo $customer['department_name']?></td>
-					<td><a href="update_user.php"><button id="join-btn" data-toggle="modal" type="button" data-target="#update_modal<?php echo $fetch['id']?>"><span class="glyphicon glyphicon-edit"></span>edit  </button></a>
-				                </tr>
-				<?php endforeach; ?>
-                
+                                            while($att = $attendances->fetch_assoc()) {
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $att['id']; ?></td>
+                                        <td><?php echo $att['user_name']; ?></td>
+                                        <td><?php echo $att['amount']; ?></td>
+                                        <td><?php echo $att['attend_date']; ?></td>
+                                        <td>edit</td>
+                                    </tr>
+
+                                    <?php
+                                            }
+                                        }
+                                    ?>
                              </tbody>
                             </table>
                         </div>    
@@ -180,29 +182,28 @@ if(!isset($_SESSION['admin_name'])){
                 <div class="modal-body">
 
                     <!--registration form-->
-                    <form id="saveUserForm" action="javascript:void();" method="POST">
+                    <form id="saveUserForm" method="POST">
 
                         <div class="mb-3">
                             <label for="InputFirst_name" class="form-label">Names</label>
-                            <input type="text" name="name" class="form-control" id="Inputname" required>
+                            <input type="text" name="username" class="form-control" id="username" required>
 
                         </div>
                         <div class="mb-3">
                             <label for="time" class="form-label">Time</label>
-                            <input type="time" name="email" class="form-control" id="time" required>
+                            <input type="time" name="time" class="form-control" id="time" required>
 
                         </div>                        
 
                         <div class="mb-3">
                             <label for="Inputdepartment_name" class="form-label">User Role</label>
                             <select class="form-select" aria-label="Default select example" id="Inputuser_type" name="user_type" required>
-                        <option value="Financial">Financial</option>
-                        <option value="admin">admin</option>
-                        <option value="HR">HR</option>
-
+                                <option value="Financial">Financial</option>
+                                <option value="admin">admin</option>
+                                <option value="HR">HR</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary" name="submit">Save attendance</button>
+                        <button type="submit" class="btn btn-primary" name="submit_att">Save attendance</button>
                     </form>
 
                 </div>
@@ -213,6 +214,27 @@ if(!isset($_SESSION['admin_name'])){
             </div>
         </div>
     </div>
+
+    <?php 
+        
+        if(isset($_POST['submit_att'])){
+
+            $atttime = $_POST['time'];
+            $attuser = $_POST['username'];
+            $attuserrole = $_POST['user_type'];
+            $today = date('Y-m-d H:i:s');
+            
+            $sql = "INSERT INTO attendance (`user_name`, `amount`, `attend_date`) VALUES ('$attuser', '900', '$today')";
+
+            if ($conn->query($sql) === TRUE) {
+                echo "<script>alert('Attendance added!');</script>";
+            } else {
+                echo "Error";
+            }
+            $conn->close();
+        }
+    
+    ?>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
